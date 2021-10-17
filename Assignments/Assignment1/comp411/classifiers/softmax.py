@@ -34,8 +34,28 @@ def softmax_loss_naive(W, X, y, reg, regtype='L2'):
     # parameter regtype.                                                        #
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    num_classes = W.shape[1]
+    num_samples = X.shape[0]
+    
+    scores = np.dot(X, W)
+    
+    for i in range(num_samples):
+        f = scores[i] - np.max(scores[i]) 
+        softmax = np.exp(f) / np.sum(np.exp(f))
+        loss += -np.log(softmax[y[i]])
+        
+        for c in range(num_classes):
+            dW[:,c] += X[i] * softmax[c]
+        dW[:,y[i]] -= X[i]
+        
+    # Average
+    loss /= num_samples
+    dW /= num_samples
 
-    pass
+    # Regularization
+    loss += reg * np.sum(W * W)
+    dW += reg * 2 * W 
+    
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -61,8 +81,15 @@ def softmax_loss_vectorized(W, X, y, reg, regtype='L2'):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
-
+    num_classes = W.shape[1]
+    num_samples = X.shape[0]
+    
+    scores = np.dot(W.T, X.T)
+    
+    softmax = np.exp(scores) / np.sum(np.exp(scores), axis=1, keepdims=True)
+    
+    loss = -np.log(softmax)
+    
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     return loss, dW
