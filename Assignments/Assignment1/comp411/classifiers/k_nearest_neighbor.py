@@ -140,13 +140,17 @@ class KNearestNeighbor(object):
         #########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        x_train_sqr2 = np.sum(np.square(self.X_train), axis=1)
-        x_train_sqr2 = np.expand_dims(x_train_sqr2, axis=0)
+        x_train_sqrt = np.sum(np.square(self.X_train), axis=1)
+        #print(f"x_train_sqrt: {x_train_sqrt.shape}")
+        x_train_sqrt = np.expand_dims(x_train_sqrt, axis=0)
+        #print(f"x_train_sqrt: {x_train_sqrt.shape}")
         
-        x_test_sqr2 = np.sum(np.square(X), axis=1)
-        x_test_sqr2 = np.expand_dims(x_test_sqr2, axis=1)
+        x_test_sqrt = np.sum(np.square(X), axis=1)
+        #print(f"x_test_sqrt: {x_test_sqrt.shape}")
+        x_test_sqrt = np.expand_dims(x_test_sqrt, axis=1)
+        #print(f"x_test_sqrt: {x_test_sqrt.shape}")
         
-        dists = x_train_sqr2 - 2*np.dot(X, self.X_train.T) + x_test_sqr2
+        dists = x_train_sqrt - 2*np.dot(X, self.X_train.T) + x_test_sqrt
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
@@ -232,8 +236,19 @@ class KNearestNeighbor(object):
         #########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)***** 
 
-        dists = np.abs(X[:,None] - self.X_train[:]) 
-
+        #x_train = np.sum(self.X_train, axis=1)
+        #print(f"x_train: {x_train.shape}")
+        x_train = np.expand_dims(self.X_train, axis=0)
+        #print(f"x_train: {x_train.shape}")
+        
+        #x_test = np.sum(X, axis=1)
+        #print(f"x_test: {x_test.shape}")
+        x_test = np.expand_dims(X, axis=1)
+        #print(f"x_test: {x_test.shape}")
+        
+        dists = np.sum(np.abs(x_train - x_test), axis=2)
+        #print(f"dists: {dists.shape}")
+        
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return dists
 
