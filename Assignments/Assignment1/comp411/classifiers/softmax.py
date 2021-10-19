@@ -34,28 +34,39 @@ def softmax_loss_naive(W, X, y, reg, regtype='L2'):
     # parameter regtype.                                                        #
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+
+    num_samples = X.shape[0]    
     num_classes = W.shape[1]
-    num_samples = X.shape[0]
     
+    # scores: shape (N, C)
     scores = np.dot(X, W)
     
-    for i in range(num_samples):
-        f = scores[i] - np.max(scores[i]) 
-        softmax = np.exp(f) / np.sum(np.exp(f))
-        loss += -np.log(softmax[y[i]])
+    for sample in range(num_samples):
+        # scaling the values for numeric stability, i.e. make highest number 0
+        x = scores[sample] - np.max(scores[sample])
         
+        # calculate loss
+        softmax = np.exp(x) / np.sum(np.exp(x))
+        loss = loss - np.log(softmax[y[sample]])
+     
+        # gradient operations
         for c in range(num_classes):
-            dW[:,c] += X[i] * softmax[c]
-        dW[:,y[i]] -= X[i]
+            dW[:,c] += X[sample] * softmax[c]
+        dW[:,y[sample]] = dW[:,y[sample]] - X[sample]
         
-    # Average
-    loss /= num_samples
-    dW /= num_samples
-
-    # Regularization
-    loss += reg * np.sum(W * W)
-    dW += reg * 2 * W 
+    # regularization operation
+    # regularization
+    if regtype == 'L1':
+        regularization = reg * np.sum(W)
+    elif regtype == 'L2':
+        regularization = reg * np.sum(W*W)
+    else:
+        raise TypeError("Only regtype='L1' and regtype='L2' are allowed ")
+        
+    loss = loss/num_samples + regularization 
     
+    dW = dW / num_samples
+    dW += 2*W*reg
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -81,15 +92,34 @@ def softmax_loss_vectorized(W, X, y, reg, regtype='L2'):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
+    num_samples = X.shape[0]    
     num_classes = W.shape[1]
-    num_samples = X.shape[0]
     
-    scores = np.dot(W.T, X.T)
+    # scores: shape (N, C)
+    scores = np.dot(X, W)
+    scores = scores - np.max(scores)
+    scores_exp = np.exp(scores)
+    #softmax = scores_exp / np.sum(scores_exp, axis=1)
+    softmax = scores_exp[range(num_samples), y] / np.sum(scores_exp, axis=1)
     
-    softmax = np.exp(scores) / np.sum(np.exp(scores), axis=1, keepdims=True)
+    # regularization
+    if regtype == 'L1':
+        regularization = reg * np.sum(W)
+    elif regtype == 'L2':
+        regularization = reg * np.sum(W*W)
+    else:
+        raise TypeError("Only regtype='L1' and regtype='L2' are allowed ")
     
-    loss = -np.log(softmax)
+    # loss
+    loss = np.sum(-np.log(softmax))
+    loss = loss/num_samples + regularization
     
+    # gradient operations
+    d = scores_exp / np.sum(scores_exp, axis=1, keepdims=True)
+    d[np.arange(num_samples), y] = d[np.arange(num_samples), y] - 1 
+    dW = np.dot(X.T, d) / num_samples
+    dW = dW + 2*reg*W
+
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     return loss, dW
