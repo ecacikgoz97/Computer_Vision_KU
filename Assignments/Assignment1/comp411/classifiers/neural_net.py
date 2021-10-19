@@ -84,8 +84,9 @@ class ThreeLayerNet(object):
         # shape (N, C).                                                             #
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
+        z1 = np.maximum(0, np.dot(X, W1) + b1)
+        z2 = np.maximum(0, np.dot(z1, W2) + b2)
+        scores = np.dot(z2, W3) + b3
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -102,9 +103,13 @@ class ThreeLayerNet(object):
         # classifier loss.                                                          #
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
-
+        scores = scores - np.max(scores, axis=1, keepdims=True)
+        softmax = np.exp(scores) / np.sum(np.exp(scores), axis=1, keepdims=True)
+        data_loss = (1/N)*np.sum(-np.log(softmax))
+        regularization_loss = reg * (np.sum(W1*W1) + np.sum(W2*W2))
+        
+        loss = data_loss + regularization_loss
+        
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         # Backward pass: compute gradients
@@ -115,8 +120,28 @@ class ThreeLayerNet(object):
         # grads['W1'] should store the gradient on W1, and be a matrix of same size #
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
+        softmax = (1/N)*(softmax - 1)
+        dw3 = np.dot(z2.T, softmax)
+        db3 = np.sum(softmax, axis=0)
+        
+        
+        H2 = np.dot(softmax, W2.T)
+        dfc2 = H2 * (z2)
+        dw1 = np.dot(z2.T, dfc2)
+        db2 = np.sum(dfc2, axis=0)
+        
+        H1 = np.dot(H2, W1.T)
+        dfc1 = H1 * (z1)
+        dw1 = np.dot(z1.T, dfc1)
+        db1 = np.sum(dfc1, axis=0)
+        
+        grads['W1'] = dw1 + 2*reg*W1
+        grads['W2'] = dw2 + 2*reg*W2
+        grads['W3'] = dw3 + 2*reg*W3
+        
+        grads['b1'] = db1
+        grads['b2'] = db2
+        grads['b3'] = db3
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
