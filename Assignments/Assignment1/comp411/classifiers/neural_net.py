@@ -87,7 +87,15 @@ class ThreeLayerNet(object):
         z1 = np.maximum(0, np.dot(X, W1) + b1)
         z2 = np.maximum(0, np.dot(z1, W2) + b2)
         scores = np.dot(z2, W3) + b3
-
+        #print(f"X : {X.shape}")
+        #print(f"N : {N}")
+        #print(f"D : {D}")
+        #print(f"W1 : {W1.shape}")
+        #print(f"W2 : {W2.shape}")
+        #print(f"W3 : {W3.shape}")
+        #print(f"z1 : {z1.shape}")
+        #print(f"z2 : {z2.shape}")
+        #print(f"scores : {scores.shape}")
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         # If the targets are not given then jump out, we're done
@@ -105,7 +113,7 @@ class ThreeLayerNet(object):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         scores = scores - np.max(scores, axis=1, keepdims=True)
         softmax = np.exp(scores) / np.sum(np.exp(scores), axis=1, keepdims=True)
-        data_loss = (1/N)*np.sum(-np.log(softmax))
+        data_loss = (1/N)*np.sum(-np.log(softmax[range(N) ,y]))
         regularization_loss = reg * (np.sum(W1*W1) + np.sum(W2*W2))
         
         loss = data_loss + regularization_loss
@@ -120,29 +128,35 @@ class ThreeLayerNet(object):
         # grads['W1'] should store the gradient on W1, and be a matrix of same size #
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        softmax = (1/N)*(softmax - 1)
-        dw3 = np.dot(z2.T, softmax)
-        db3 = np.sum(softmax, axis=0)
+        delta = softmax
+        delta[range(N) ,y] = delta[range(N) ,y] - 1
+        delta = (1/N)*delta
+        #print(delta.shape)
+        #print(z2.shape)
+        
+        dw3 = np.dot(z2.T, delta)
+        db3 = np.sum(delta, axis=0)
         
         
-        H2 = np.dot(softmax, W2.T)
-        dfc2 = H2 * (z2)
-        dw1 = np.dot(z2.T, dfc2)
-        db2 = np.sum(dfc2, axis=0)
+        dw2 = np.dot(delta, W3.T)
+        dz2 = dw2 * (z2>0)
+        dw2 = np.dot(z1.T, dz2)
+        #print(dz2.shape)
+        #print(dw2.shape)
+        db2 = np.sum(dz2, axis=0)
         
-        H1 = np.dot(H2, W1.T)
-        dfc1 = H1 * (z1)
-        dw1 = np.dot(z1.T, dfc1)
-        db1 = np.sum(dfc1, axis=0)
+        dw1 = np.dot(dz2, W2.T)
+        dz1 = dw1 * (z1>0)
+        dw1 = np.dot(X.T, dz1)
+        #print(dz1.shape)
+        #print(dw1.shape)
+        db1 = np.sum(dz1, axis=0)
         
-        grads['W1'] = dw1 + 2*reg*W1
-        grads['W2'] = dw2 + 2*reg*W2
-        grads['W3'] = dw3 + 2*reg*W3
+        dw1 += reg * 2 * W1
+        dw2 += reg * 2 * W2
+        dw3 += reg * 2 * W3
         
-        grads['b1'] = db1
-        grads['b2'] = db2
-        grads['b3'] = db3
-
+        grads = {'W1':dw1, 'b1':db1, 'W2':dw2, 'b2':db2, 'W3':dw3, 'b3':db3}
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         return loss, grads
@@ -186,7 +200,8 @@ class ThreeLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            idx = np.random.choice(num_train, batch_size)
+            X_batch, y_batch = X[idx], y[idx]
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -201,9 +216,13 @@ class ThreeLayerNet(object):
             # stored in the grads dictionary defined above.                         #
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-            pass
-
+            self.params['W1'] = self.params['W1'] - learning_rate*grads['W1'] 
+            self.params['W2'] = self.params['W2'] - learning_rate*grads['W2'] 
+            self.params['W3'] = self.params['W3'] - learning_rate*grads['W3'] 
+            
+            self.params['b1'] = self.params['b1'] - learning_rate*grads['b1'] 
+            self.params['b2'] = self.params['b2'] - learning_rate*grads['b2']
+            self.params['b3'] = self.params['b3'] - learning_rate*grads['b3'] 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
             if verbose and it % 100 == 0:
@@ -247,8 +266,9 @@ class ThreeLayerNet(object):
         # TODO: Implement this function; it should be VERY simple!                #
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
+            
+        y_pred = self.loss(X).argmax(axis=1)
+            
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
