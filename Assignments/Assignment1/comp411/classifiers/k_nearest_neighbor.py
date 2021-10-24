@@ -236,13 +236,11 @@ class KNearestNeighbor(object):
         #########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)***** 
 
-        #x_train = np.sum(self.X_train, axis=1)
-        #print(f"x_train: {x_train.shape}")
+        #print(f"X_train: {self.X_train.shape}")
         x_train = np.expand_dims(self.X_train, axis=0)
         #print(f"x_train: {x_train.shape}")
         
-        #x_test = np.sum(X, axis=1)
-        #print(f"x_test: {x_test.shape}")
+        #print(f"X: {Z.shape}")
         x_test = np.expand_dims(X, axis=1)
         #print(f"x_test: {x_test.shape}")
         
