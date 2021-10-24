@@ -84,8 +84,12 @@ class ThreeLayerNet(object):
         # shape (N, C).                                                             #
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        z1 = np.maximum(0, np.dot(X, W1) + b1)
-        z2 = np.maximum(0, np.dot(z1, W2) + b2)
+        h1 = np.dot(X, W1) + b1
+        z1 = np.maximum(0, h1)
+        
+        h2 = np.dot(z1, W2) + b2
+        z2 = np.maximum(0, h2)
+        
         scores = np.dot(z2, W3) + b3
         #print(f"X : {X.shape}")
         #print(f"N : {N}")
@@ -114,7 +118,8 @@ class ThreeLayerNet(object):
         scores = scores - np.max(scores, axis=1, keepdims=True)
         softmax = np.exp(scores) / np.sum(np.exp(scores), axis=1, keepdims=True)
         data_loss = (1/N)*np.sum(-np.log(softmax[range(N) ,y]))
-        regularization_loss = reg * (np.sum(W1*W1) + np.sum(W2*W2))
+        
+        regularization_loss = reg * (np.sum(W1*W1) + np.sum(W2*W2) + np.sum(W3*W3))
         
         loss = data_loss + regularization_loss
         
@@ -137,24 +142,23 @@ class ThreeLayerNet(object):
         dw3 = np.dot(z2.T, delta)
         db3 = np.sum(delta, axis=0)
         
-        
         dw2 = np.dot(delta, W3.T)
-        dz2 = dw2 * (z2>0)
+        dz2 = dw2 * (h2>0)
         dw2 = np.dot(z1.T, dz2)
         #print(dz2.shape)
         #print(dw2.shape)
         db2 = np.sum(dz2, axis=0)
         
         dw1 = np.dot(dz2, W2.T)
-        dz1 = dw1 * (z1>0)
+        dz1 = dw1 * (h1>0)
         dw1 = np.dot(X.T, dz1)
         #print(dz1.shape)
         #print(dw1.shape)
         db1 = np.sum(dz1, axis=0)
         
-        dw1 += reg * 2 * W1
-        dw2 += reg * 2 * W2
-        dw3 += reg * 2 * W3
+        dw1 = dw1 + reg*2*W1
+        dw2 = dw2 + reg*2*W2
+        dw3 = dw3 + reg*2*W3
         
         grads = {'W1':dw1, 'b1':db1, 'W2':dw2, 'b2':db2, 'W3':dw3, 'b3':db3}
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -217,11 +221,12 @@ class ThreeLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
             self.params['W1'] = self.params['W1'] - learning_rate*grads['W1'] 
-            self.params['W2'] = self.params['W2'] - learning_rate*grads['W2'] 
-            self.params['W3'] = self.params['W3'] - learning_rate*grads['W3'] 
+            self.params['b1'] = self.params['b1'] - learning_rate*grads['b1']
             
-            self.params['b1'] = self.params['b1'] - learning_rate*grads['b1'] 
+            self.params['W2'] = self.params['W2'] - learning_rate*grads['W2'] 
             self.params['b2'] = self.params['b2'] - learning_rate*grads['b2']
+            
+            self.params['W3'] = self.params['W3'] - learning_rate*grads['W3'] 
             self.params['b3'] = self.params['b3'] - learning_rate*grads['b3'] 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
