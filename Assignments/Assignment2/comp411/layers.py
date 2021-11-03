@@ -26,9 +26,11 @@ def affine_forward(x, w, b):
     # will need to reshape the input into rows.                               #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    #print(f"x: {x.shape}")
+    x_flatten = x.reshape(x.shape[0], -1)
+    #print(f"x_flatten: {x_flatten.shape}")
+    out = np.dot(x_flatten, w) + b
+    #print(f"out: {out.shape}")
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -59,11 +61,17 @@ def affine_backward(dout, cache):
     # TODO: Implement the affine backward pass.                               #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-
-
-    pass
-
+    x_flatten = x.reshape(x.shape[0], -1)
+    #print(f"x: {x.shape}, w: {w.shape}, b: {b.shape}")
+    #print(f"x_flatten: {x_flatten.shape}")
+    #print(f"dout: {dout.shape}\n")
+    
+    dx = np.dot(dout, w.T)
+    dw = np.dot(x_flatten.T, dout)
+    db = np.sum(dout, axis=0)
+    #print(f"dx: {dx.shape}, dw: {dw.shape}, db: {db.shape}")
+    dx = dx.reshape(x.shape)
+    #print(f"dx: {dx.shape}, dw: {dw.shape}, db: {db.shape}")
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -88,7 +96,7 @@ def relu_forward(x):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    out = np.maximum(0, x)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -115,7 +123,7 @@ def relu_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    dx =  (x > 0)*dout
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -145,8 +153,8 @@ def leaky_relu_forward(x, lrelu_param):
     # TODO: Implement the ReLU forward pass.                                  #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
+    
+    out = np.maximum(alpha*x, x) 
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -175,10 +183,24 @@ def leaky_relu_backward(dout, cache):
     # TODO: Implement the ReLU backward pass.                                 #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-
-
-    pass
+    print(dout.shape)
+    print(x.shape)
+    x_flatten = x.reshape(-1)
+    ddd = []
+    cntr = 0
+    for i in x.shape[0]:
+        for j in x.shape[1]
+            if i > 0:
+                ddd.append(dout)
+                cntr +=1
+            else:
+                ddd.append(alpha*dout)
+                cntr +=1
+    print(cntr)
+    print(len(ddd))
+    ddd = np.asarray(ddd)
+    print(ddd.shape)
+    dx = ddd.reshape(ddd, x.shape)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
