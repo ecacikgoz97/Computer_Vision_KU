@@ -183,24 +183,17 @@ def leaky_relu_backward(dout, cache):
     # TODO: Implement the ReLU backward pass.                                 #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    print(dout.shape)
-    print(x.shape)
-    x_flatten = x.reshape(-1)
-    ddd = []
-    cntr = 0
-    for i in x.shape[0]:
-        for j in x.shape[1]
-            if i > 0:
-                ddd.append(dout)
-                cntr +=1
-            else:
-                ddd.append(alpha*dout)
-                cntr +=1
-    print(cntr)
-    print(len(ddd))
-    ddd = np.asarray(ddd)
-    print(ddd.shape)
-    dx = ddd.reshape(ddd, x.shape)
+    X = x.reshape( -1)
+    DOUT = dout.reshape(-1)
+    dx = []
+    for idx, i in enumerate(X):
+        if i > 0:
+            dx.append(DOUT[idx])
+        else:
+            dx.append(alpha*DOUT[idx])
+    
+    dx = np.reshape(dx, x.shape)
+    #print(f"dx: {dx.shape}")
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
