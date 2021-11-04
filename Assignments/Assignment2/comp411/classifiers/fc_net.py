@@ -54,11 +54,13 @@ class ThreeLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-
-
-
-        pass
-
+        self.params['W1'] = weight_scale*np.random.randn(input_dim, hidden_dim[0])
+        self.params['b1'] = np.zeros(hidden_dim[0])
+        self.params['W2'] = weight_scale*np.random.randn(hidden_dim[0], hidden_dim[1])
+        self.params['b2'] = np.zeros(hidden_dim)
+        self.params['W3'] = weight_scale*np.random.randn(hidden_dim[1], num_classes)
+        self.params['b3'] = np.zeros(num_classes)
+        
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -90,12 +92,18 @@ class ThreeLayerNet(object):
         # class scores for X and storing them in the scores variable.              #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        W1, b1 = self.params['W1'], self.params['b1']
+        W2, b2 = self.params['W2'], self.params['b2']
+        W3, b3 = self.params['W3'], self.params['b3']
+        N, D = X.shape
 
-
-
-
-
-        pass
+        h1, hidden_cache1 = affine_forward(X, W1, b1)
+        z1, relu_cache1 = relu_forward(h1)
+        h2, hidden_cache2 = affine_forward(z1, W2, b2)
+        z2, relu_cache2 = relu_forward(h2)
+        h3, hidden_cache3 = affine_forward(z2, W3, b3)
+        scores, relu_cache3 = relu_forward(h3)
+        
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -118,12 +126,24 @@ class ThreeLayerNet(object):
         # of 0.5 to simplify the expression for the gradient.                      #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        loss, dsoftmax = softmax_loss(scores, y)
+        regularization = 0.5*self.reg*(np.sum(W1*W1) + np.sum(W2*W2) + np.sum(W3*W3))
+        loss = loss + regularization
+        
+        dr3 = relu_backward(dsoftmax, relu_cache3)
+        dx3, dw3, db3 = affine_backward(dr3, hidden_cache3)
+        dr2 = relu_backward(dx3, relu_cache2)
+        dx2, dw2, db2 = affine_backward(dr2, hidden_cache2)
+        dr1 = relu_backward(dx2, relu_cache1)
+        dx1, dw1, db1 = affine_backward(dr1, hidden_cache1)
 
-
-
-
-
-        pass
+        grads['W3'] = dw3 + self.reg * W3
+        grads['b3'] = db3
+        grads['W2'] = dw2 + self.reg * W2
+        grads['b2'] = db2
+        grads['W1'] = dw1 + self.reg * W1
+        grads['b1'] = db1
+        
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
