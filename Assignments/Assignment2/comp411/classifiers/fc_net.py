@@ -57,7 +57,7 @@ class ThreeLayerNet(object):
         self.params['W1'] = weight_scale*np.random.randn(input_dim, hidden_dim[0])
         self.params['b1'] = np.zeros(hidden_dim[0])
         self.params['W2'] = weight_scale*np.random.randn(hidden_dim[0], hidden_dim[1])
-        self.params['b2'] = np.zeros(hidden_dim)
+        self.params['b2'] = np.zeros(hidden_dim[1])
         self.params['W3'] = weight_scale*np.random.randn(hidden_dim[1], num_classes)
         self.params['b3'] = np.zeros(num_classes)
         
@@ -95,7 +95,6 @@ class ThreeLayerNet(object):
         W1, b1 = self.params['W1'], self.params['b1']
         W2, b2 = self.params['W2'], self.params['b2']
         W3, b3 = self.params['W3'], self.params['b3']
-        N, D = X.shape
 
         h1, hidden_cache1 = affine_forward(X, W1, b1)
         z1, relu_cache1 = relu_forward(h1)
@@ -207,10 +206,20 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-
-
-        pass
-
+        self.params['W1'] = weight_scale*np.random.randn(input_dim, hidden_dim[0])
+        self.params['b1'] = np.zeros(hidden_dim[0])
+        
+        cntr = 2
+        for idx,hidden in enumerate(hiddens):
+            W = "W" + str(idx+2)
+            b = "b" + str(idx+2)
+            self.params[W] = weight_scale*np.random.randn(input_dim, hidden_dim[idx])
+            self.params[b] = np.zeros(hidden_dim[idx])
+            
+            cntr+=1
+        
+        self.params['W' + str(cntr)] = weight_scale*np.random.randn(hidden_dim[cntr], num_classes)
+        self.params['b'+ str(cntr)] = np.zeros(num_classes)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -254,7 +263,10 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-
+        loss, dsoftmax = softmax_loss(scores, y)
+        for i in
+        regularization = 0.5*self.reg*(np.sum(W1*W1) + np.sum(W2*W2) + np.sum(W3*W3))
+        loss = loss + regularization
 
 
 
