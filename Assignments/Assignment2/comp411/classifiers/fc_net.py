@@ -205,21 +205,14 @@ class FullyConnectedNet(object):
         #                                                                          #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        self.params['W1'] = weight_scale*np.random.randn(input_dim, hidden_dim[0])
-        self.params['b1'] = np.zeros(hidden_dim[0])
-        
-        cntr = 2
-        for idx,hidden in enumerate(hiddens):
-            W = "W" + str(idx+2)
-            b = "b" + str(idx+2)
-            self.params[W] = weight_scale*np.random.randn(input_dim, hidden_dim[idx])
-            self.params[b] = np.zeros(hidden_dim[idx])
+        all_layers = np.hstack([input_dim, hidden_dims, num_classes])
+  
+        for idx in range(self.num_layers):
+            W = "W" + str(idx+1)
+            b = "b" + str(idx+1)
+            self.params[W] = weight_scale*np.random.randn(all_layers[idx], all_layers[idx+1])
+            self.params[b] = np.zeros(all_layers[idx+1])
             
-            cntr+=1
-        
-        self.params['W' + str(cntr)] = weight_scale*np.random.randn(hidden_dim[cntr], num_classes)
-        self.params['b'+ str(cntr)] = np.zeros(num_classes)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -262,17 +255,23 @@ class FullyConnectedNet(object):
         #                                                                          #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        loss, dsoftmax = softmax_loss(scores, y)
-        for i in
-        regularization = 0.5*self.reg*(np.sum(W1*W1) + np.sum(W2*W2) + np.sum(W3*W3))
-        loss = loss + regularization
-
-
-
-
-        pass
-
+        hidden_len = self.num_layers - 1
+        hidden_caches, relu_caches = [],[]
+        
+        for i in range(hidden_len):
+            W = self.params["W" + str(i+1)]
+            b = self.params["b" + str(i+1)]
+            
+            X, hidden_cache = affine_forward(X, W, b)
+            z, relu_cache = relu_forward(X)
+            hidden_caches.append(hidden_cache)
+            relu_caches.append(relu_cache)
+        
+        W = self.params["W" + str(hidden_len+1)]
+        b = self.params["b" + str(hidden_len+1)]
+        scores, cache = affine_forward(z, W, b)
+        hidden_caches.append(cache)
+        
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -295,12 +294,25 @@ class FullyConnectedNet(object):
         # of 0.5 to simplify the expression for the gradient.                      #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-
-
-
-
-        pass
+        loss, dsoftmax = softmax_loss(scores, y)
+        for i in range(hidden_len+1):
+            W = self.params["W" + str(i+1)]
+            regularization = 0.5*self.reg*np.sum(W*W)
+            loss = loss + regularization
+            
+            
+        dout, dw, db = affine_backward(dsoftmax, hidden_caches[hidden_len])
+        grads["W"+str(hidden_len)] = dw + self.reg*self.params["W"+str(hidden_len+1)]
+        grads["b"+str(hidden_len)] = db
+        
+        
+        for i in range(hidden_len-1, -1, -1):
+            dr = relu_backward(dout, relu_caches[i])
+            dx, dw, db = affine_backward(dr, hidden_caches[i])
+            grads["W"+str(i+1)] = dw + self.reg*self.params["W"+str(i+1)]
+            grads["b"+str(i+1)] = db
+            
+            dout = dx
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
