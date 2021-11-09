@@ -205,13 +205,13 @@ class FullyConnectedNet(object):
         #                                                                          #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        all_layers = np.hstack([input_dim, hidden_dims, num_classes])
+        network = np.hstack([input_dim, hidden_dims, num_classes])
   
         for idx in range(self.num_layers):
             W = "W" + str(idx+1)
             b = "b" + str(idx+1)
-            self.params[W] = weight_scale*np.random.randn(all_layers[idx], all_layers[idx+1])
-            self.params[b] = np.zeros(all_layers[idx+1])
+            self.params[W] = weight_scale*np.random.randn(network[idx], network[idx+1])
+            self.params[b] = np.zeros(network[idx+1])
             
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -257,13 +257,13 @@ class FullyConnectedNet(object):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         hidden_len = self.num_layers - 1
         hidden_caches, relu_caches = [],[]
-        
+        x=X
         for i in range(hidden_len):
             W = self.params["W" + str(i+1)]
             b = self.params["b" + str(i+1)]
             
-            X, hidden_cache = affine_forward(X, W, b)
-            z, relu_cache = relu_forward(X)
+            x, hidden_cache = affine_forward(x, W, b)
+            z, relu_cache = relu_forward(x)
             hidden_caches.append(hidden_cache)
             relu_caches.append(relu_cache)
         
@@ -297,13 +297,14 @@ class FullyConnectedNet(object):
         loss, dsoftmax = softmax_loss(scores, y)
         for i in range(hidden_len+1):
             W = self.params["W" + str(i+1)]
-            regularization = 0.5*self.reg*np.sum(W*W)
-            loss = loss + regularization
+            #regularization = 0.5*self.reg*np.sum(W*W)
+            #loss = loss + regularization
+            loss += 0.5 * self.reg * np.sum(W * W) 
             
             
         dout, dw, db = affine_backward(dsoftmax, hidden_caches[hidden_len])
-        grads["W"+str(hidden_len)] = dw + self.reg*self.params["W"+str(hidden_len+1)]
-        grads["b"+str(hidden_len)] = db
+        grads["W"+str(hidden_len+1)] = dw + self.reg*self.params["W"+str(hidden_len+1)]
+        grads["b"+str(hidden_len+1)] = db
         
         
         for i in range(hidden_len-1, -1, -1):
