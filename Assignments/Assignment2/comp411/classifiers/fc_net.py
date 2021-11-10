@@ -211,8 +211,7 @@ class FullyConnectedNet(object):
             W = "W" + str(idx+1)
             b = "b" + str(idx+1)
             self.params[W] = weight_scale*np.random.randn(network[idx], network[idx+1])
-            self.params[b] = np.zeros(network[idx+1])
-            
+            self.params[b] = np.zeros(network[idx+1]) 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -256,20 +255,22 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         hidden_len = self.num_layers - 1
-        hidden_caches, relu_caches = [],[]
-        x=X
+        hidden_caches, lrelu_caches = [],[]
+        lrelu_params = {"alpha": self.alpha}
+       
         for i in range(hidden_len):
             W = self.params["W" + str(i+1)]
             b = self.params["b" + str(i+1)]
             
-            x, hidden_cache = affine_forward(x, W, b)
-            z, relu_cache = relu_forward(x)
+            x, hidden_cache = affine_forward(X, W, b)
+            z, lrelu_cache = leaky_relu_forward(x, lrelu_params)
             hidden_caches.append(hidden_cache)
-            relu_caches.append(relu_cache)
+            lrelu_caches.append(lrelu_cache)
+            X = z
         
         W = self.params["W" + str(hidden_len+1)]
         b = self.params["b" + str(hidden_len+1)]
-        scores, cache = affine_forward(z, W, b)
+        scores, cache = affine_forward(X, W, b)
         hidden_caches.append(cache)
         
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -294,26 +295,27 @@ class FullyConnectedNet(object):
         # of 0.5 to simplify the expression for the gradient.                      #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+       
         loss, dsoftmax = softmax_loss(scores, y)
         for i in range(hidden_len+1):
             W = self.params["W" + str(i+1)]
-            #regularization = 0.5*self.reg*np.sum(W*W)
-            #loss = loss + regularization
-            loss += 0.5 * self.reg * np.sum(W * W) 
+            regularization = 0.5*self.reg*np.sum(W*W)
+            loss = loss + regularization
             
-            
-        dout, dw, db = affine_backward(dsoftmax, hidden_caches[hidden_len])
+        
+        dx, dw, db = affine_backward(dsoftmax, hidden_caches[hidden_len])
         grads["W"+str(hidden_len+1)] = dw + self.reg*self.params["W"+str(hidden_len+1)]
         grads["b"+str(hidden_len+1)] = db
         
         
         for i in range(hidden_len-1, -1, -1):
-            dr = relu_backward(dout, relu_caches[i])
+            #print("start")
+            #print(i)
+            dr = leaky_relu_backward(dx, lrelu_caches[i])
             dx, dw, db = affine_backward(dr, hidden_caches[i])
             grads["W"+str(i+1)] = dw + self.reg*self.params["W"+str(i+1)]
             grads["b"+str(i+1)] = db
-            
-            dout = dx
+
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
