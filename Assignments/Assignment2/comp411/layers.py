@@ -241,10 +241,10 @@ def dropout_forward(x, dropout_param):
         # Store the dropout mask in the mask variable.                        #
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-
-        pass
-
+        
+        mask = (np.random.rand(*x.shape) < p) / p
+        out = x*mask
+        
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
         #                           END OF YOUR CODE                          #
@@ -254,8 +254,8 @@ def dropout_forward(x, dropout_param):
         # TODO: Implement the test phase forward pass for inverted dropout.   #
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
+        
+        out = x
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -286,7 +286,7 @@ def dropout_backward(dout, cache):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        dx = dout * mask
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -334,17 +334,37 @@ def conv_forward_naive(x, w, b, conv_param):
     # Hint: you can use the function np.pad for padding.                      #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    # initialization
+    stride, pad = conv_param['stride'], conv_param['pad']
+    padding = ((0,0), (0,0), (pad, pad), (pad, pad))
+    N, C, H, W = x.shape
+    F, C, HH, WW = w.shape
+    
+    # output dimensions
+    H_out = int(1 + (H + 2 * pad - HH) / stride)
+    W_out = int(1 + (W + 2 * pad - WW) / stride)
 
-
-
-
-
-
-
-
-
-
-    pass
+    #print(W_out)
+    output_shape = (N,F,H_out,W_out)
+    
+    # zero-padding
+    padded = np.pad(x, padding)
+    H_padded, W_padded = padded.shape[2], padded.shape[3]
+    
+    # implement forward matrices
+    W_row = w.reshape(F, C*HH*WW)
+    X_column = np.zeros((C*HH*WW, H_out*W_out))
+    b = b.reshape(F,1)
+    
+    # convolution operation
+    out = np.zeros(output_shape)
+    for i in range(N):
+        cntr = 0
+        for row in range(0, H_padded-HH+1, stride):
+            for col in range(0, W_padded-WW+1, stride):
+                X_column[:,cntr] = padded[i, :, row:row+HH, col:col+WW].reshape(C*HH*WW)
+                cntr += 1
+        out[i] = (np.dot(W_row, X_column) + b).reshape(F, H_out, W_out)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
