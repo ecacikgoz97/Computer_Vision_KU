@@ -255,7 +255,7 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         hidden_len = self.num_layers - 1
-        hidden_caches, lrelu_caches = [],[]
+        hidden_caches, lrelu_caches, dropout_caches = [],[],[]
         lrelu_params = {"alpha": self.alpha}
        
         for i in range(hidden_len):
@@ -264,8 +264,12 @@ class FullyConnectedNet(object):
             
             x, hidden_cache = affine_forward(X, W, b)
             z, lrelu_cache = leaky_relu_forward(x, lrelu_params)
+            if self.use_dropout:
+                z, dropout_cache = dropout_forward(z, self.dropout_param)
+                dropout_caches.append(dropout_cache)
             hidden_caches.append(hidden_cache)
             lrelu_caches.append(lrelu_cache)
+            
             X = z
         
         W = self.params["W" + str(hidden_len+1)]
@@ -309,8 +313,8 @@ class FullyConnectedNet(object):
         
         
         for i in range(hidden_len-1, -1, -1):
-            #print("start")
-            #print(i)
+            if self.use_dropout:
+                dx = dropout_backward(dx, dropout_caches[i])  
             dr = leaky_relu_backward(dx, lrelu_caches[i])
             dx, dw, db = affine_backward(dr, hidden_caches[i])
             grads["W"+str(i+1)] = dw + self.reg*self.params["W"+str(i+1)]
