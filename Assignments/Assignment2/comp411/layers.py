@@ -352,9 +352,9 @@ def conv_forward_naive(x, w, b, conv_param):
     H_padded, W_padded = padded.shape[2], padded.shape[3]
     
     # implement forward matrices
-    W_row = w.reshape(F, C*HH*WW)
+    W_flatten = w.reshape(F, -1)
     X_column = np.zeros((C*HH*WW, H_out*W_out))
-    b = b.reshape(F,1)
+    #b = b.reshape(F,1)
     
     # convolution operation
     out = np.zeros(output_shape)
@@ -362,9 +362,9 @@ def conv_forward_naive(x, w, b, conv_param):
         cntr = 0
         for row in range(0, H_padded-HH+1, stride):
             for col in range(0, W_padded-WW+1, stride):
-                X_column[:,cntr] = padded[i, :, row:row+HH, col:col+WW].reshape(C*HH*WW)
+                X_column[:,cntr] = padded[i, :, row:row+HH, col:col+WW].reshape(-1)
                 cntr += 1
-        out[i] = (np.dot(W_row, X_column) + b).reshape(F, H_out, W_out)
+        out[i] = (np.dot(W_flatten, X_column) + b.reshape(F, 1)).reshape(F, H_out, W_out)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -453,14 +453,24 @@ def max_pool_forward_naive(x, pool_param):
     # TODO: Implement the max-pooling forward pass                            #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    pool_height, pool_width, stride = pool_param['pool_height'], pool_param['pool_width'], pool_param['stride']
+    print
+    N, C, H, W = x.shape
+    
+    # output dimensions
+    H_out = int(1 + (H - pool_height) / stride)
+    W_out = int(1 + (W - pool_width) / stride)
 
-
-
-
-
-
-    pass
-
+    #print(W_out)
+    output_shape = (N, C, H_out, W_out)
+        
+    # pooling operation
+    out = np.zeros(output_shape)
+    for num in range(N):
+        for channel in range(C):
+            for row in range(H_out):
+                for col in range(W_out):
+                    out[num, channel, row, col] = (x[num, channel, row*stride:row*stride+pool_height, col*stride:col*stride+pool_width]).max(axis=(0,1))
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -485,12 +495,40 @@ def max_pool_backward_naive(dout, cache):
     # TODO: Implement the max-pooling backward pass                           #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    #print(f"dout shape: {dout.shape}")
+    """x, pool_param = cache
+    pool_height, pool_width, stride = pool_param['pool_height'], pool_param['pool_width'], pool_param['stride']
+    
+    N, C, H, W = x.shape
+    H_out, W_out = dout.shape[2], dout.shape[3]
 
+    dx = np.zeros((N, C, H, W))
+    for i in range(N):
+        dout = dout[i].reshape(C, -1)
+        cntr = 0
+        for row in range(0, H-pool_height+1, stride):
+            for col in range(0, W-pool_width+1, stride):
+                filtered_idx = np.argmax(x[i, :, row*stride:row*stride+pool_height, col*stride:col*stride+pool_width])
+                grad_maxp = np.zeros((C, pool_height*pool_width))
+                grad_maxp[range(C), filtered_idx] = dout[:,cntr]
+                
+                dx[i, :, row:row+pool_height, col:col+pool_width] = dx[i, :, row:row+pool_height, col:col+pool_width] + grad_maxp.reshape(C, pool_height, pool_width)
+                cntr += 1"""
+    x, pool_param = cache
+    pool_height, pool_width, stride = pool_param['pool_height'], pool_param['pool_width'], pool_param['stride']
+    N, C, H, W = x.shape
+    H_out, W_out = dout.shape[2], dout.shape[3]
+    
+    dx = np.zeros((N, C, H, W))
+    for num in range(N):
+        for channel in range(C):
+            for row in range(0, H_out):
+                for col in range(0, W_out):
+                    filtered_idx = (x[num, channel, row*stride:row*stride+pool_height, col*stride:col*stride+pool_width]).argmax()
+                    filtered1_idx, filtered2_idx = np.unravel_index(filtered_idx, (pool_height, pool_width))
+                    dx[num, channel, row*stride:row*stride+pool_height, col*stride:col*stride+pool_width][filtered1_idx, filtered2_idx] = dout[num, channel, row, col]
 
-
-
-
-    pass
+    
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
