@@ -20,19 +20,19 @@ The goals of this assignment are as follows:
 
 **Anaconda Virtual environment:** Once you have Anaconda installed, it makes sense to create a virtual environment for the course. If you choose not to use a virtual environment, it is up to you to make sure that all dependencies for the code are installed globally on your machine. To set up a virtual environment, run (in a terminal)
 
-`conda create -n comp451 python=3.7 anaconda`
+`conda create -n comp411 python=3.7 anaconda`
 
-to create an environment called comp451.
+to create an environment called comp411.
 
 Then, to activate and enter the environment, run
 
-`source activate comp451`
+`source activate comp411`
 
 To exit, you can simply close the window, or run
 
-`source deactivate comp451`
+`source deactivate comp411`
 
-Note that every time you want to work on the assignment, you should run `source activate comp451` (change to the name of your virtual env).
+Note that every time you want to work on the assignment, you should run `source activate comp411` (change to the name of your virtual env).
 
 You may refer to [this page](https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) for more detailed instructions on managing virtual environments with Anaconda.
 S
@@ -42,7 +42,7 @@ S
 Once you have the starter code (regardless of which method you choose above), you will need to download the COCO captioning and CIFAR10 classification datasets. Make sure `wget` is installed on your machine before running the commands below. Run the following from the assignment3 directory:
 
 ```
-cd comp451/datasets
+cd comp411/datasets
 ./get_assignment3_data.sh
 
 ./get_datasets.sh
