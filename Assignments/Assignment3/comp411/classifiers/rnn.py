@@ -151,9 +151,31 @@ class CaptioningRNN(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        out1, cache1 = affine_forward(features, W_proj, b_proj)
+        #print(f"out1: {out1.shape}")
+        out2, cache2 = word_embedding_forward(captions_in, W_embed)
+        #print(f"out2: {out2.shape}")
+        if self.cell_type == 'rnn':
+            out3, cache3 = rnn_forward(out2, out1, Wx, Wh, b)
+        else:
+            raise "Expected cell-type is 'rnn'!"
+        out4, cache4 = temporal_affine_forward(out3, W_vocab, b_vocab)
+        loss, dout = temporal_softmax_loss(out4, captions_out, mask)
         
-
+        dout, dW_vocab, db_vocab = temporal_affine_backward(dout, cache4)
+        dout, dh0, dWx, dWh, db = rnn_backward(dout, cache3)
+        dW_embed = word_embedding_backward(dout, cache2)
+        dx, dW_proj, db_proj = affine_backward(dh0, cache1)
+        
+        grads["W_vocab"] = dW_vocab
+        grads["b_vocab"] = db_vocab
+        grads["Wx"]      = dWx
+        grads["Wh"]      = dWh
+        grads["b"]       = db
+        grads["W_embed"] = dW_embed
+        grads['W_proj']  = dW_proj
+        grads['b_proj']  = db_proj
+        #grads = self.clip_grad_norm(grads, self.gclip)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -175,11 +197,29 @@ class CaptioningRNN(object):
         ###########################################################################
         # TODO: Implement gradient clipping using gclip value as the threshold.   #
         ###########################################################################
-        # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-       
-        pass
-                
-
+        # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)***** 
+        #print(grads.keys())
+        #print(grads["W_vocab"].shape)
+        #print(grads["b_vocab"].shape)
+        #print(grads["Wx"].shape)
+        #print(grads["Wh"].shape)
+        #print(grads["b"].shape)
+        #print(grads["W_embed"].shape)
+        #print(grads["W_proj"].shape)
+        #print(grads["b_proj"].shape)
+        gclip = float(gclip)
+        #print(grads["W_embed"])
+        grads["W_vocab"] = np.where(grads["W_vocab"] < gclip, grads["W_vocab"], grads["W_vocab"]/np.std(grads["W_vocab"], axis=0))
+        grads["b_vocab"] = np.where(grads["b_vocab"] < gclip, grads["b_vocab"], grads["b_vocab"]/np.std(grads["b_vocab"], axis=10))
+        grads["Wx"]      = np.where(grads["Wx"] < gclip, grads["Wx"], grads["Wx"]/np.std(grads["Wx"], axis=0))
+        grads["Wh"]      = np.where(grads["Wh"] < gclip, grads["Wh"], grads["Wh"]/np.std(grads["Wh"], axis=0))
+        grads["b"]       = np.where(grads["b"] < gclip, grads["b"], grads["b"]/np.std(grads["b"], axis=0))
+        grads["W_embed"] = np.where(grads["W_embed"] < gclip, grads["W_embed"], grads["W_embed"]/np.std(grads["W_embed"], axis=0))
+        grads["W_proj"]  = np.where(grads["W_proj"] < gclip, grads["W_proj"], grads["W_proj"]/np.std(grads["W_proj"], axis=0))
+        grads["b_proj"]  = np.where(grads["b_proj"] < gclip, grads["b_proj"], grads["b_proj"]/np.std(grads["b_proj"], axis=0))
+        #print("################")
+        #print(grads["W_embed"])
+        clipped_grads    = grads
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
