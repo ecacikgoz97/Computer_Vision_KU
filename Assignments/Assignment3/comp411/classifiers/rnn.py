@@ -175,7 +175,8 @@ class CaptioningRNN(object):
         grads["W_embed"] = dW_embed
         grads['W_proj']  = dW_proj
         grads['b_proj']  = db_proj
-        #grads = self.clip_grad_norm(grads, self.gclip)
+        if self.gclip > 0:
+            grads = self.clip_grad_norm(grads, self.gclip)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -207,10 +208,11 @@ class CaptioningRNN(object):
         #print(grads["W_embed"].shape)
         #print(grads["W_proj"].shape)
         #print(grads["b_proj"].shape)
-        gclip = float(gclip)
+        """gclip = float(gclip)
+        print(gclip)
         #print(grads["W_embed"])
         grads["W_vocab"] = np.where(grads["W_vocab"] < gclip, grads["W_vocab"], grads["W_vocab"]/np.std(grads["W_vocab"], axis=0))
-        grads["b_vocab"] = np.where(grads["b_vocab"] < gclip, grads["b_vocab"], grads["b_vocab"]/np.std(grads["b_vocab"], axis=10))
+        grads["b_vocab"] = np.where(grads["b_vocab"] < gclip, grads["b_vocab"], grads["b_vocab"]/np.std(grads["b_vocab"], axis=0))
         grads["Wx"]      = np.where(grads["Wx"] < gclip, grads["Wx"], grads["Wx"]/np.std(grads["Wx"], axis=0))
         grads["Wh"]      = np.where(grads["Wh"] < gclip, grads["Wh"], grads["Wh"]/np.std(grads["Wh"], axis=0))
         grads["b"]       = np.where(grads["b"] < gclip, grads["b"], grads["b"]/np.std(grads["b"], axis=0))
@@ -220,6 +222,14 @@ class CaptioningRNN(object):
         #print("################")
         #print(grads["W_embed"])
         clipped_grads    = grads
+        
+        for key in grads.keys():
+            if gclip < np.sum(grads[str(key)]):
+                grads[str(key)] *= gclip/np.linalg.norm(grads[str(key)], ord=2)
+        clipped_grads = grads"""
+        for key in grads.keys():
+            grads[str(key)] = np.where(grads[str(key)] > gclip, grads[str(key)], grads[str(key)]/np.linalg.norm(grads[str(key)], axis=0))
+        clipped_grads = grads
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -281,7 +291,15 @@ class CaptioningRNN(object):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        h = np.dot(features, W_proj) + b_proj
+        x = W_embed[int(self._start * np.ones(N)), :]
+        #print(f"h0: {h0.shape}, x: {x.shape}")
+        for t in range(max_length):
+            next_h, cache = rnn_step_forward(x, h, Wx, Wh, b)
+            out = np.dot(next_h, W_vocab) + b_vocab
+            captions[:, t] = np.argmax(out, axis=1)
+            x = W_embed[captions[:, t], :]
+            h = next_h
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
