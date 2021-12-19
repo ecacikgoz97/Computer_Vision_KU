@@ -360,7 +360,16 @@ class CaptioningRNN(object):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        h = np.dot(features, W_proj) + b_proj
+        x = W_embed[int(self._start * np.ones(N)), :]
+        for t in range(max_length):
+            next_h, cache = rnn_step_forward(x, h, Wx, Wh, b)
+            out = np.dot(next_h, W_vocab) + b_vocab
+            #captions[:, t] = np.argmax(out, axis=1)
+            #print(np.squeeze(out).shape)
+            captions[:, t] = np.random.choice(np.squeeze(out))
+            x = W_embed[captions[:, t], :]
+            h = next_h
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
